@@ -19,8 +19,13 @@ class NaiveMdp(ABC):
     @abstractmethod
     def reward(self, cur_state, action, next_state):
         """For a given state transition state --action-> state, @return a dict
-        {reward->prob} of the eward for that transition."""
+        {reward->prob} of the reward for that transition."""
         pass
+
+    def expected_reward(self, cur_state, action, next_state):
+        rewards = self.reward(cur_state, action, next_state)
+        total = sum(k*v for k, v in rewards.items())
+        return total / sum(rewards.values())
 
 
 class NaiveMdpPolicy(ABC):
@@ -30,6 +35,16 @@ class NaiveMdpPolicy(ABC):
         """For a given state, @return a dict {action->prob} of
         next actions and their probabilities."""
         pass
+
+    def most_likely_action(self, cur_state):
+        action_probabilities = self.action_probabilities(cur_state)
+        action = None
+        max_prob = 0
+        for a, p in action_probabilities.items():
+            if p > max_prob:
+                action = a
+                max_prob = p
+        return action
 
 
 class Rollout:

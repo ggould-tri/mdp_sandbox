@@ -31,5 +31,6 @@ class MdpTest(unittest.TestCase):
             r.policy_step(p, verbose=False)
         assert r.state == 50, r.state
 
+
 if __name__ == "__main__":
     unittest.main()
