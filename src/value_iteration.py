@@ -19,22 +19,20 @@ class ValueIteration(NaiveMdpPolicy):
 
     def stabilize(self,
                   search_iterations=100,
-                  search_discount_factor=0.5,
-                  refine_discount_factor=0.95):
-        """Heuristically attempt to stabilize this policy function.
-        Under most circumstances there is a fixpoint, but it is expensive to
-        be sure that you have found it.  We instead iterate with a short
-        discount rate until some path from start to end is found, then
-        ramp up the discount window to find more prudent paths."""
+                  refine_iterations=100,
+                  discount_factor=0.9):
+        """Heuristically attempt to stabilize this policy function."""
         for i in range(search_iterations):
-            self.iterate_values(discount_factor=search_discount_factor)
+            updated = self.iterate_values(discount_factor=discount_factor)
             if self.values[self.starting_state] != 0:
                 break
+            if not updated: return
         else:
             raise RuntimeError("No path to reward found after "
                                f"{search_iterations} iterations")
         for j in range(i):
-            self.iterate_values(discount_factor=refine_discount_factor)
+            updated = self.iterate_values(discount_factor=discount_factor)
+            if not updated: return
 
     def iterate_values(self, discount_factor=0.9):
         new_values = defaultdict(lambda: 0)
@@ -46,7 +44,9 @@ class ValueIteration(NaiveMdpPolicy):
             for a, a_probability in action_probabilities.items():
                 state_value += a_probability * action_values[a]
             new_values[state] = state_value
+        updated = (self.values != new_values)
         self.values = new_values
+        return updated
 
     def action_values(self, cur_state, discount_factor=0.9):
         action_values = {}
